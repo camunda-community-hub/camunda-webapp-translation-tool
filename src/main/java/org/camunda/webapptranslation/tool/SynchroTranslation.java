@@ -77,9 +77,11 @@ public class SynchroTranslation {
             // Build the list of proposal objects
             List<Proposal> listProposals = new ArrayList<>();
             if (synchroParams.getCompletion() == SynchroParams.COMPLETION.TRANSLATION) {
-                List<Proposal> listAllProposal = Arrays.asList(new ProposalSameKey(),
-                        new ProposalSameTranslation(),
-                        new ProposalGoogleTranslate(synchroParams.getGoogleAPIKey(), synchroParams.getLimitNumberGoogleTranslation()));
+                List<Proposal> listAllProposal = new ArrayList();
+                listAllProposal.add(new ProposalSameKey());
+                listAllProposal.add(new ProposalSameTranslation());
+                if (synchroParams.getGoogleAPIKey()!=null)
+                    listAllProposal.add(new ProposalGoogleTranslate(synchroParams.getGoogleAPIKey(), synchroParams.getLimitNumberGoogleTranslation()));
 
                 listAllProposal.forEach(proposal -> {
                     if (proposal.begin(report)) {
