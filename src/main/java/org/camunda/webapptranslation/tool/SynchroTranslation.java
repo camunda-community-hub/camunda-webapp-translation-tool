@@ -82,6 +82,7 @@ public class SynchroTranslation {
                 listAllProposal.add(new ProposalSameKey());
                 listAllProposal.add(new ProposalSameTranslation());
                 if (synchroParams.getGoogleAPIKey() != null)
+
                     listAllProposal.add(new ProposalGoogleTranslate(synchroParams.getGoogleAPIKey(), synchroParams.getLimitNumberGoogleTranslation()));
 
                 listAllProposal.forEach(proposal -> {
