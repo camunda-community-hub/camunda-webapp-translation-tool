@@ -1,7 +1,6 @@
 package org.camunda.webapptranslation.tool.operation;
 
 import org.camunda.webapptranslation.tool.SynchroParams;
-import org.camunda.webapptranslation.tool.SynchroParams;
 import org.camunda.webapptranslation.tool.app.AppDictionary;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 
@@ -92,13 +91,13 @@ public class DictionaryDetection extends Operation {
      */
     private void reportFullDectection(DictionaryStatus dictionaryStatus, ReportInt report) {
         if (dictionaryStatus.nbMissingKeys > 0) {
-            report.info(DictionaryDetection.class, INDENTATION_FULL + "Missing keys: " +  String.join(", ", dictionaryStatus.missingKeys));
+            report.info(DictionaryDetection.class, INDENTATION_FULL + "Missing keys: " + String.join(", ", dictionaryStatus.missingKeys));
         }
         if (dictionaryStatus.nbTooMuchKeys > 0) {
-            report.info(DictionaryDetection.class, INDENTATION_FULL + "Too much keys: " +  String.join(", ", dictionaryStatus.tooMuchKeys));
+            report.info(DictionaryDetection.class, INDENTATION_FULL + "Too much keys: " + String.join(", ", dictionaryStatus.tooMuchKeys));
         }
         if (dictionaryStatus.nbIncorrectKeyClass > 0) {
-            report.info(DictionaryDetection.class, INDENTATION_FULL + "Incorrect classes: " +  String.join(", ", dictionaryStatus.incorrectClass));
+            report.info(DictionaryDetection.class, INDENTATION_FULL + "Incorrect classes: " + String.join(", ", dictionaryStatus.incorrectClass));
         }
 
 

@@ -8,8 +8,8 @@ public class SynchroParams {
     public static final String PLEASE_TRANSLATE_THE_SENTENCE = "_PLEASETRANSLATETHESENTENCE";
     public static final String PLEASE_VERIFY_THE_SENTENCE = "_PLEASEVERIFYTHESENTENCE";
     public static final String PLEASE_VERIFY_THE_SENTENCE_REFERENCE = "_PLEASEVERIFYTHESENTENCE_REFERENCE";
+    private final List<String> msgErrors = new ArrayList<>();
     private boolean usage = false;
-    private final List<String> msgErrors= new ArrayList<>();
     private String referenceLanguage = "en";
     private String rootFolder = null;
     /**
@@ -23,13 +23,22 @@ public class SynchroParams {
     private int limitNumberGoogleTranslation = 100;
 
     /**
+     * Static to be use in lambda
+     *
+     * @param msg message to print
+     */
+    private static void print(String msg) {
+        System.out.println(msg);
+    }
+
+    /**
      * Explore the arguments to fulfil parameters
      *
      * @param args arguments
      */
     public void explore(String[] args) {
         int i = 0;
-        int parameterCommand=0;
+        int parameterCommand = 0;
 
         while (i < args.length) {
             if (("-d".equals(args[i]) || "--detect".equals(args[i])) && i < args.length - 1) {
@@ -72,21 +81,21 @@ public class SynchroParams {
                 i += 2;
             } else {
                 // Two next args: folder + referenceLanguage
-                if (parameterCommand==0)
+                if (parameterCommand == 0)
                     rootFolder = args[i];
-                if (parameterCommand==1)
+                if (parameterCommand == 1)
                     referenceLanguage = args[i];
                 parameterCommand++;
                 i++;
             }
         }
-        if (rootFolder==null)
+        if (rootFolder == null)
             msgErrors.add("No TranslationFolder provided");
         else
             try {
                 rootFolder = new java.io.File(rootFolder).getCanonicalPath();
             } catch (Exception e) {
-                msgErrors.add("Can't access the TranslationFolder["+rootFolder+"]");
+                msgErrors.add("Can't access the TranslationFolder[" + rootFolder + "]");
             }
     }
 
@@ -101,10 +110,11 @@ public class SynchroParams {
     /**
      * if an error is detected in parameters, then return true. Some parameters, like the folder where
      * all translations are stored, are mandatory.
+     *
      * @return true is an error is detected in parameters
      */
     public boolean isError() {
-        return ! msgErrors.isEmpty();
+        return !msgErrors.isEmpty();
     }
 
     public COMPLETION getCompletion() {
@@ -177,14 +187,6 @@ public class SynchroParams {
         print("Error:");
         msgErrors.forEach(SynchroParams::print);
         print("");
-    }
-
-    /**
-     * Static to be use in lambda
-     * @param msg message to print
-     */
-    private static void print(String msg) {
-        System.out.println(msg);
     }
 
     public enum DETECTION {NO, SYNTHETIC, FULL}

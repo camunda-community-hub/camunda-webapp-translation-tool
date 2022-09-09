@@ -15,9 +15,10 @@ import java.util.stream.Collectors;
 
 public class Encyclopedia {
 
+    private final String language;
     Map<String, List<Registration>> registrationKeys = new HashMap<>();
     Map<String, List<Registration>> registrationTranslations = new HashMap<>();
-    private final String language;
+
     public Encyclopedia(String language) {
         this.language = language;
     }
