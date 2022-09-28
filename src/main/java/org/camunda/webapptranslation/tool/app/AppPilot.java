@@ -13,6 +13,7 @@ package org.camunda.webapptranslation.tool.app;
 /* -------------------------------------------------------------------- */
 
 import org.camunda.webapptranslation.tool.SynchroParams;
+import org.camunda.webapptranslation.tool.WebApplication;
 import org.camunda.webapptranslation.tool.operation.DictionaryCompletion;
 import org.camunda.webapptranslation.tool.operation.DictionaryDetection;
 import org.camunda.webapptranslation.tool.operation.EncyclopediaUniversal;
@@ -27,15 +28,15 @@ import java.util.Set;
 
 public class AppPilot {
 
-    File folder;
+    WebApplication webApplication;
     String referenceLanguage;
     Set<String> languages = new HashSet<>();
     Set<String> expectedLanguages;
 
-    public AppPilot(File folder, String referenceLanguage) {
-        this.folder = folder;
+    public AppPilot(WebApplication webApplication, String referenceLanguage) {
+        this.webApplication = webApplication;
         this.referenceLanguage = referenceLanguage;
-        for (File file : Objects.requireNonNull(new File(folder.getAbsolutePath()).listFiles())) {
+        for (File file : Objects.requireNonNull(new File(webApplication.translationFolder.getAbsolutePath()).listFiles())) {
             if (file.getName().endsWith(".json"))
                 languages.add(file.getName().substring(0, file.getName().length() - 5));
         }
@@ -65,12 +66,13 @@ public class AppPilot {
      */
     public void detection(SynchroParams synchroParams, ReportInt report) {
 
-        AppDictionary referenceDictionary = new AppDictionary(folder, referenceLanguage);
-        referenceDictionary.read(report);
+        AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
+        if (!referenceDictionary.read(report))
+            return;
 
         DictionaryDetection appDetection = new DictionaryDetection();
 
-        appDetection.detection(expectedLanguages, folder, referenceDictionary, synchroParams, report);
+        appDetection.detection(expectedLanguages, webApplication, referenceDictionary, synchroParams, report);
 
     }
 
@@ -82,11 +84,11 @@ public class AppPilot {
      * @param report                 report object
      */
     public void completion(EncyclopediaUniversal encyclopediaUniversal, List<Proposal> listProposals, SynchroParams synchroParams, ReportInt report) {
-        AppDictionary referenceDictionary = new AppDictionary(folder, referenceLanguage);
+        AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
         referenceDictionary.read(report);
 
         DictionaryCompletion appCompletion = new DictionaryCompletion();
-        appCompletion.completion(expectedLanguages, folder, referenceDictionary, encyclopediaUniversal, listProposals, synchroParams, report);
+        appCompletion.completion(expectedLanguages, webApplication, referenceDictionary, encyclopediaUniversal, listProposals, synchroParams, report);
     }
 
     /**
@@ -97,7 +99,7 @@ public class AppPilot {
      * @param report                report object
      */
     public void completeEncyclopedia(EncyclopediaUniversal encyclopediaUniversal, SynchroParams synchroParams, ReportInt report) {
-        AppDictionary referenceDictionary = new AppDictionary(folder, referenceLanguage);
+        AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
         if (referenceDictionary.existFile() && referenceDictionary.read(report))
             encyclopediaUniversal.registerDictionary(referenceDictionary);
 
@@ -105,7 +107,7 @@ public class AppPilot {
             if (synchroParams.getOnlyCompleteOneLanguage() != null
                     && !synchroParams.getOnlyCompleteOneLanguage().equals(language))
                 continue;
-            AppDictionary dictionary = new AppDictionary(folder, language);
+            AppDictionary dictionary = new AppDictionary(webApplication.translationFolder, language);
             if (dictionary.existFile() && dictionary.read(report)) {
                 encyclopediaUniversal.registerDictionary(dictionary);
             }

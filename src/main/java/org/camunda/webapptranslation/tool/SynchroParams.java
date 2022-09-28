@@ -1,5 +1,6 @@
 package org.camunda.webapptranslation.tool;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,10 +9,12 @@ public class SynchroParams {
     public static final String PLEASE_TRANSLATE_THE_SENTENCE = "_PLEASETRANSLATETHESENTENCE";
     public static final String PLEASE_VERIFY_THE_SENTENCE = "_PLEASEVERIFYTHESENTENCE";
     public static final String PLEASE_VERIFY_THE_SENTENCE_REFERENCE = "_PLEASEVERIFYTHESENTENCE_REFERENCE";
+    private final List<String> msgErrors = new ArrayList<>();
     private boolean usage = false;
-    private final List<String> msgErrors= new ArrayList<>();
     private String referenceLanguage = "en";
-    private String rootFolder = null;
+    private File referenceFolder = null;
+    private File translationFolder = null;
+    private File optimizeFolder = null;
     /**
      * If not null, then only this language is completed (the -c option must be set too)
      */
@@ -23,13 +26,22 @@ public class SynchroParams {
     private int limitNumberGoogleTranslation = 100;
 
     /**
+     * Static to be use in lambda
+     *
+     * @param msg message to print
+     */
+    private static void print(String msg) {
+        System.out.println(msg);
+    }
+
+    /**
      * Explore the arguments to fulfil parameters
      *
      * @param args arguments
      */
     public void explore(String[] args) {
         int i = 0;
-        int parameterCommand=0;
+        int parameterCommand = 0;
 
         while (i < args.length) {
             if (("-d".equals(args[i]) || "--detect".equals(args[i])) && i < args.length - 1) {
@@ -54,7 +66,7 @@ public class SynchroParams {
                 i += 2;
             } else if (("--limiteGoogleAPIKey".equals(args[i])) && i < args.length - 1) {
                 try {
-                    limitNumberGoogleTranslation = Integer.valueOf(args[i + 1]);
+                    limitNumberGoogleTranslation = Integer.parseInt(args[i + 1]);
                 } catch (Exception e) {
                     print("-limiteGoogleAPIKey <number>");
 
@@ -71,23 +83,26 @@ public class SynchroParams {
                 }
                 i += 2;
             } else {
-                // Two next args: folder + referenceLanguage
-                if (parameterCommand==0)
-                    rootFolder = args[i];
-                if (parameterCommand==1)
+                // Next args:
+                // REFERENCE_FOLDER TRANSLATION_DIRECTORY OPTIMIZE_DIRECTORY + referenceLanguage
+                if (parameterCommand == 0)
+                    referenceFolder = getFile(args[i]);
+                if (parameterCommand == 1)
+                    translationFolder = getFile(args[i]);
+                if (parameterCommand == 2)
+                    optimizeFolder = getFile(args[i]);
+                if (parameterCommand == 3)
                     referenceLanguage = args[i];
                 parameterCommand++;
                 i++;
             }
         }
-        if (rootFolder==null)
-            msgErrors.add("No TranslationFolder provided");
-        else
-            try {
-                rootFolder = new java.io.File(rootFolder).getCanonicalPath();
-            } catch (Exception e) {
-                msgErrors.add("Can't access the TranslationFolder["+rootFolder+"]");
-            }
+        if (referenceFolder == null)
+            msgErrors.add("No REFERENCE_FOLDER provided");
+        if (translationFolder == null)
+            msgErrors.add("No TRANSLATION_FOLDER Folder provided");
+        if (optimizeFolder == null)
+            msgErrors.add("No OPTIMIZE_FOLDER Folder provided");
     }
 
     public DETECTION getDetection() {
@@ -101,10 +116,11 @@ public class SynchroParams {
     /**
      * if an error is detected in parameters, then return true. Some parameters, like the folder where
      * all translations are stored, are mandatory.
+     *
      * @return true is an error is detected in parameters
      */
     public boolean isError() {
-        return ! msgErrors.isEmpty();
+        return !msgErrors.isEmpty();
     }
 
     public COMPLETION getCompletion() {
@@ -115,8 +131,16 @@ public class SynchroParams {
         return referenceLanguage;
     }
 
-    public String getRootFolder() {
-        return rootFolder;
+    public File getReferenceFolder() {
+        return referenceFolder;
+    }
+
+    public File getTranslationFolder() {
+        return translationFolder;
+    }
+
+    public File getOptimizeFolder() {
+        return optimizeFolder;
     }
 
     public REPORT getReport() {
@@ -139,7 +163,9 @@ public class SynchroParams {
      * print the current options detected
      */
     public void printOptions() {
-        print(" Folder to study: " + getRootFolder());
+        print(" REFERENCE_FOLDER to study: " + getReferenceFolder().toString());
+        print(" TRANSLATION_FOLDER to study: " + getTranslationFolder().toString());
+        print(" OPTIMIZE_FOLDER to study: " + getOptimizeFolder().toString());
         print(" Reference language: " + getReferenceLanguage());
         print(" Detection: " + getDetection());
         print(" Completion: " + getCompletion());
@@ -158,7 +184,9 @@ public class SynchroParams {
      * print the usage
      */
     public void printUsage() {
-        print("Usage: SynchroTranslation [options] TranslationFolder [ReferenceLanguage]");
+        print("Usage: SynchroTranslation [options] REFERENCE_FOLDER TRANSLATION_FOLDER OPTIMIZE_FOLDER [ReferenceLanguage]");
+        print(" REFERENCE_FOLDER is the project https://github.com/camunda/camunda-bpm-platform");
+        print(" TRANSLATION_FOLDER is the project https://github.com/camunda/camunda-webapp-translations");
         print(" Subfolders contains a list of .json files. Each file is a language (de.json). The reference language contains all references. Each language is controlled from this reference to detect the missing keys.");
         print("Options:");
         print(" -d|--detect <" + DETECTION.NO + "|" + DETECTION.SYNTHETIC + "|" + DETECTION.FULL + "> detection and comparison. Default is " + DETECTION.SYNTHETIC);
@@ -180,11 +208,22 @@ public class SynchroParams {
     }
 
     /**
-     * Static to be use in lambda
-     * @param msg message to print
+     * Get the File folder from the string
+     *
+     * @param folderSt Folder as a String, given as the parameter
+     * @return the File or null if the folder does not exist
      */
-    private static void print(String msg) {
-        System.out.println(msg);
+    private File getFile(String folderSt) {
+        try {
+            File folder = new File(folderSt);
+            if (folder.isDirectory())
+                return folder;
+            print("parameter [" + folderSt + "] does not point to a folder");
+            return null;
+        } catch (Exception e) {
+            print("parameter [" + folderSt + "] does not point to a folder");
+            return null;
+        }
     }
 
     public enum DETECTION {NO, SYNTHETIC, FULL}

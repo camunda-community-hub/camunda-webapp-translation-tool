@@ -17,6 +17,8 @@ public class ProposalGoogleTranslate implements Proposal {
     private int numberOfTranslations;
     private int numberOfTranslationsRequested;
 
+    private long lastReportTime = 0;
+
     private long cumulTranslationTimeInMs = 0;
 
     public ProposalGoogleTranslate(String googleAPIKey, int limitNumberOfTranslations) {
@@ -70,6 +72,10 @@ public class ProposalGoogleTranslate implements Proposal {
             cumulTranslationTimeInMs += System.currentTimeMillis() - currentTime;
 
             numberOfTranslations++;
+            if (System.currentTimeMillis() - lastReportTime > 5000) {
+                lastReportTime = System.currentTimeMillis();
+                report.info(ProposalGoogleTranslate.class, "Google Translate:" + numberOfTranslations);
+            }
             return translation.getTranslatedText().replace("&#39;", "'");
         } catch (Exception e) {
             report.severe(ProposalGoogleTranslate.class, "Can't translate : " + e);

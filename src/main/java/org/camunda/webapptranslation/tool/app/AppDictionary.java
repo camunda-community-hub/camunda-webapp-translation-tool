@@ -18,7 +18,7 @@ public class AppDictionary {
 
 
     public final static String PREFIX_PLEASE_TRANSLATE = "";
-    private final File path;
+    private final File folder;
     private final String language;
     /**
      * Dictionary, JSON format is a hierarchy collection of String or list
@@ -44,8 +44,12 @@ public class AppDictionary {
      */
     private boolean dictionaryIsModified = false;
 
-    public AppDictionary(File path, String language) {
-        this.path = path;
+    /**
+     * @param folder   folder where the dictionary is located
+     * @param language language for this dictionary
+     */
+    public AppDictionary(File folder, String language) {
+        this.folder = folder;
         this.language = language;
         this.dictionary = new HashMap<>();
     }
@@ -104,7 +108,12 @@ public class AppDictionary {
         return dictionaryIsModified;
     }
 
-
+    /**
+     * Explicitaly move the modified option to true
+     */
+    public void setModified() {
+        this.dictionaryIsModified = true;
+    }
 
 
 
@@ -158,7 +167,7 @@ public class AppDictionary {
      * @return the file, path + language
      */
     public File getFile() {
-        return new File(path + File.separator + language + ".json");
+        return new File(folder + File.separator + language + ".json");
     }
 
     /**
