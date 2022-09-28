@@ -91,8 +91,6 @@ public class DictionaryCompletion extends Operation {
             DictionaryStatus dictionaryStatus = checkKeys(appDictionary, referenceDictionary);
             timeTrackerDictionaryCheckKeys.stop();
 
-            List<String> listReports = new ArrayList<>();
-
             listProposals.forEach(proposal -> proposal.setDictionaries(appDictionary, referenceDictionary, encyclopediaUniversal));
 
             if (dictionaryStatus.nbMissingKeys > 0) {
