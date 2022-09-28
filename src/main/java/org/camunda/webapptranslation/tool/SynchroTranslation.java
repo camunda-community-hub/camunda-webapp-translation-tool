@@ -50,14 +50,21 @@ public class SynchroTranslation {
                 report = new ReportStdout();
         }
         // Get all dictionary folders
-        List<File> listFolders = getDictionaryFolder(synchroParams, report);
-        if (listFolders.isEmpty()) {
+        List<WebApplication> listApplications = getDictionaryFolder(synchroParams, report);
+        if (listApplications.isEmpty()) {
             report.severe(SynchroTranslation.class, "No folder detected containing a file for the language [" + synchroParams.getReferenceLanguage() + "]");
             return;
         }
         // Build Application Pilot per folder
         List<AppPilot> listAppPilot = new ArrayList<>();
-        listFolders.forEach(folder -> listAppPilot.add(new AppPilot(folder, synchroParams.getReferenceLanguage())));
+        listApplications.forEach(application -> listAppPilot.add(new AppPilot(application, synchroParams.getReferenceLanguage())));
+
+        // Optimize is a pilot by itself
+        WebApplication applicationOptimize = new WebApplication();
+        applicationOptimize.applicationName = "Optimize";
+        applicationOptimize.translationFolder = new File(synchroParams.getOptimizeFolder() + File.separator + "localisation");
+        applicationOptimize.referenceFolder = new File(synchroParams.getOptimizeFolder() + File.separator + "localisation");
+        listAppPilot.add(new AppPilot(applicationOptimize, synchroParams.getReferenceLanguage()));
 
         // Collect the list of expected languages
         Set<String> expectedLanguage = new HashSet<>();
@@ -115,11 +122,52 @@ public class SynchroTranslation {
      * @param report        to report any error
      * @return the list of all folder where a dictionary is detected, based on the reference language
      */
-    public static List<File> getDictionaryFolder(SynchroParams synchroParams, ReportInt report) {
-        report.info(SynchroTranslation.class, "Explore from rootFolder [" + synchroParams.getRootFolder() + "]");
-        return completeRecursiveFolder(synchroParams.getRootFolder(), synchroParams.getReferenceLanguage(), report);
+    public static List<WebApplication> getDictionaryFolder(SynchroParams synchroParams, ReportInt report) {
+        report.info(SynchroTranslation.class, "Explore from Translation Folder [" + synchroParams.getTranslationFolder() + "]");
+        // We don't use the recursive exploration. Pattern is fixed now.
+        // on the TRANSLATION_FOLDER, the path is  TRANSLATION_FOLDER/<application> like TRANSLATION_FOLDER/admin
+        // on the REFERENCE_FOLDER, the path is REFERENCE_FOLDER/webapps/ui/<application>/client/en.json
+        List<WebApplication> listApplications = new ArrayList<>();
+        try {
+            for (File file : Objects.requireNonNull(synchroParams.getTranslationFolder().listFiles())) {
+                if (file.isDirectory()) {
+                    // this is the application level
+                    WebApplication application = new WebApplication();
+                    application.applicationName = file.getName();
+                    application.translationFolder = file;
+                    // search if the same file exist on the reference
+                    File referenceDictionary = new File(synchroParams.getReferenceFolder()
+                            + File.separator + "webapps"
+                            + File.separator + "ui"
+                            + File.separator + application.applicationName
+                            + File.separator + "client"
+                            + File.separator + synchroParams.getReferenceLanguage() + ".json");
+                    if (referenceDictionary.exists() && referenceDictionary.isFile()) {
+                        application.referenceFolder = new File(synchroParams.getReferenceFolder()
+                                + File.separator + "webapps"
+                                + File.separator + "ui"
+                                + File.separator + application.applicationName
+                                + File.separator + "client");
+
+                        listApplications.add(application);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            report.severe(SynchroTranslation.class, "Error parsing folder [" + synchroParams.getTranslationFolder() + "]", e);
+        }
+        return listApplications;
     }
 
+
+    /**
+     * Usefull to complete the recursive folder
+     *
+     * @param folder            source folder to explore
+     * @param referenceLanguage reference language to detect if this folder is a dictionary folder
+     * @param report            report any error
+     * @return list of folders where translation are detected
+     */
     private static List<File> completeRecursiveFolder(String folder, String referenceLanguage, ReportInt report) {
         // check the current folder and it's child
         List<File> listFolders = new ArrayList<>();

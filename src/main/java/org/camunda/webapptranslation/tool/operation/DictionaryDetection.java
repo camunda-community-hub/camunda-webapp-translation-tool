@@ -1,10 +1,10 @@
 package org.camunda.webapptranslation.tool.operation;
 
 import org.camunda.webapptranslation.tool.SynchroParams;
+import org.camunda.webapptranslation.tool.WebApplication;
 import org.camunda.webapptranslation.tool.app.AppDictionary;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -33,12 +33,12 @@ public class DictionaryDetection extends Operation {
      * @param report        report the status
      */
     public void detection(Set<String> expectedLanguages,
-                          File folder,
+                          WebApplication webApplication,
                           AppDictionary referenceDictionary,
                           SynchroParams synchroParams,
                           ReportInt report) {
 
-        report.info(DictionaryDetection.class, "----- Folder " + folder);
+        report.info(DictionaryDetection.class, "----- Application " + webApplication.applicationName);
 
         // check each dictionary
         for (String language : expectedLanguages.stream().sorted().collect(Collectors.toList())) {
@@ -49,7 +49,7 @@ public class DictionaryDetection extends Operation {
                 report.info(DictionaryDetection.class, headerLanguage(language) + "Referentiel");
                 continue;
             }
-            AppDictionary dictionary = new AppDictionary(folder, language);
+            AppDictionary dictionary = new AppDictionary(webApplication.translationFolder, language);
             if (!dictionary.existFile()) {
                 report.info(DictionaryDetection.class, headerLanguage(language) + "Not exist (" + referenceDictionary.getDictionary().size() + " missing keys)");
                 continue;

@@ -18,7 +18,12 @@ public class ProposalGoogleTranslate implements Proposal {
     private int numberOfTranslations;
     private int numberOfTranslationsRequested;
 
+    private long lastReportTime = 0;
+
+    private long cumulTranslationTimeInMs = 0;
+
     private long accumulateTimeSinceLastReportInMS = 0;
+
 
     public ProposalGoogleTranslate(String googleAPIKey, int limitNumberOfTranslations) {
         this.googleAPIKey = googleAPIKey;

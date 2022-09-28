@@ -9,61 +9,48 @@ This tool contains two functions:
 
 Propositions made by the tool are not visible by the application because all propositions are prefixed by different keys.
 
-# How to use it
-This section gives the different actions for translating a dictionary
+#### Build and execute SynchroTranslation
+The machine must have Maven + Java 17 installed.
+1. Fork / Clone the language repository 
+     https://github.com/camunda/camunda-webapp-translations 
+   This repository contains all translations, but not the reference english dictionary. This is the **TRANSLATION_FOLDER**
+   Example, you download it under `c:/camunda/camunda-webapp-translations`
+   ==> your contribution will be pushed in this repository for Cockpit, Tasklist, Admin, Welcome
 
-## different repositories
-Camunda 7 repository are https://github.com/camunda/camunda-webapp-translations
+2. Clone or download the main repository. English reference is under webapps/ui/<app>/client/en.json
+   https://github.com/camunda/camunda-bpm-platform
+   this is the **REFERENCE_FOLDER**
+   Example, you download it under `c:/camunda/camunda-bpm-platform`
 
-Camunda Optimize repository: in progress
+3. Fork/Clone or download the Optimize repository
+   https://github.com/camunda/camunda-optimize-translations/tree/main/localisation
+   this is the **OPTIMIZE_FOLDER**
+   ==> your contribution will be pushed in this repository for Optimize
 
-Camunda 8 repository: in progress
+5. Detection and completion must be performed in this repository
+   You cloned the repository under c:\camunda\camunda-webapp-translations
+6. Fork  / Clone the SynchroTranslation repository (this repository)
+7. Go to the source of the project
+8. Execute
 
-
-## Fork the repository
-First, FORK the repository where you want to contribute.
-You can do that operation via www.github.com, clicking on the Fork button.
-
-The second step is to download the repository locally on your machine.
-
-For example, you do this operation for the Camunda 7 repository, and you download it on `c:\camunda\camunda-webapp-translations`.
-We call the directory **<C7-TRANSLATION>**
-
-
-## Clone the tool
-Clone/download this repository locally, then you can execute the tool.
-
-The GitHub project is
-https://github.com/camunda-community-hub/camunda-webapp-translation-tool
-
-You must have **Maven** + **Java** (**JDK 11** or upper installed).
-
-Let's say that you cloned under `c:\camunda\camunda-webapp-translations-tool`.
-We call this directory **<TRANSLATION-TOOL>**
-
-Execute
 ```` 
 > cd  <TRANSLATION-TOOL>
 > mvn install
 ````
-
-## Detection
-Detection reads all dictionaries and does not modify them. The reference is the English dictionary.
-A missing sentence means the key exists in the English dictionary but not in the target dictionary.
-
-To detect the missing translations on a repository, execute
+6. Execute
+The command is 
+``````
+java  -jar target/SynchroTranslation.jar REFERENCE_FOLDER TRANSLATION_FODLER OPTILMIZE_FOLDER
+``````
+So for example
 ````
-> cd <TRANSLATION-TOOL> 
-> java -jar target/SynchroTranslation.jar <C7-TRANSLATION>
-````
+> java  -jar target/SynchroTranslation.jar c:/camunda/camunda-bpm-platform c:/camunda/camunda-webapp-translations OPTILMIZE_DIRECTORY 
+ Folder to study: c:\camunda\camunda-webapp-translations
+ Reference language: en
+ Detection: SYNTHETIC
+ Completion: NO
+ Report: STDOUT
 
-The result is something like
-````
-Folder to study: c:\camunda\camunda-webapp-translations
-Reference language: en
-Detection: SYNTHETIC
-Completion: NO
-Report: STDOUT
 Explore from rootFolder [c:\camunda\camunda-webapp-translations]
 Detect [c:\camunda\camunda-webapp-translations\camunda-webapp-translation/admin]
 Detect [c:\camunda\camunda-webapp-translations\camunda-webapp-translation/cockpit]

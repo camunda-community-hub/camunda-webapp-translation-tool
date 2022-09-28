@@ -1,12 +1,12 @@
 package org.camunda.webapptranslation.tool.operation;
 
 import org.camunda.webapptranslation.tool.SynchroParams;
+import org.camunda.webapptranslation.tool.WebApplication;
 import org.camunda.webapptranslation.tool.app.AppDictionary;
 import org.camunda.webapptranslation.tool.app.AppPilot;
 import org.camunda.webapptranslation.tool.app.AppTimeTracker;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class DictionaryCompletion extends Operation {
      * @param report        report object
      */
     public void completion(Set<String> expectedLanguages,
-                           File folder,
+                           WebApplication webApplication,
                            AppDictionary referenceDictionary,
                            EncyclopediaUniversal encyclopediaUniversal,
                            List<Proposal> listProposals,
@@ -38,7 +38,7 @@ public class DictionaryCompletion extends Operation {
                            ReportInt report) {
 
         // check each dictionary
-        report.info(AppPilot.class, "----- Folder " + folder);
+        report.info(AppPilot.class, "----- Application " + webApplication.applicationName);
 
 
         for (String language : expectedLanguages.stream().sorted().collect(Collectors.toList())) {
@@ -50,7 +50,7 @@ public class DictionaryCompletion extends Operation {
                 continue;
             }
 
-            AppDictionary appDictionary = new AppDictionary(folder, language);
+            AppDictionary appDictionary = new AppDictionary(webApplication.translationFolder, language);
 
 
             //----------------  Read and complete
@@ -68,6 +68,7 @@ public class DictionaryCompletion extends Operation {
                     continue;
                 }
             }
+            int beforePurge = appDictionary.getDictionary().size();
             // purge all TRANSLATE key
             AppTimeTracker timeTrackerDictionaryPreparation = AppTimeTracker.getTimeTracker("dictionaryPreparation");
             timeTrackerDictionaryPreparation.start();
@@ -77,7 +78,12 @@ public class DictionaryCompletion extends Operation {
                             || entry.getKey().endsWith(SynchroParams.PLEASE_VERIFY_THE_SENTENCE)
                             || entry.getKey().endsWith(SynchroParams.PLEASE_VERIFY_THE_SENTENCE_REFERENCE)
                     ));
-            timeTrackerDictionaryPreparation.stop();
+
+            List<String> listReports = new ArrayList<>();
+            if (appDictionary.getDictionary().size() != beforePurge) {
+                listReports.add((beforePurge - appDictionary.getDictionary().size()) + " label keys purged");
+                appDictionary.setModified();
+            }
 
             // check and complete
             AppTimeTracker timeTrackerDictionaryCheckKeys = AppTimeTracker.getTimeTracker("dictionaryCheckKeys");
