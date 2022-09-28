@@ -5,6 +5,7 @@ import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
 import org.camunda.webapptranslation.tool.app.AppDictionary;
+import org.camunda.webapptranslation.tool.app.AppTimeTracker;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 
 public class ProposalGoogleTranslate implements Proposal {
@@ -20,6 +21,9 @@ public class ProposalGoogleTranslate implements Proposal {
     private long lastReportTime = 0;
 
     private long cumulTranslationTimeInMs = 0;
+
+    private long accumulateTimeSinceLastReportInMS = 0;
+
 
     public ProposalGoogleTranslate(String googleAPIKey, int limitNumberOfTranslations) {
         this.googleAPIKey = googleAPIKey;
@@ -48,7 +52,9 @@ public class ProposalGoogleTranslate implements Proposal {
 
     @Override
     public void end(ReportInt report) {
-        report.info(Proposal.class, "GoogleTranslation: " + numberOfTranslationsRequested + " requested,  " + numberOfTranslations + " done in " + cumulTranslationTimeInMs + " ms ");
+        AppTimeTracker timeTracker = AppTimeTracker.getTimeTracker("googleTranslation");
+
+        report.info(ProposalGoogleTranslate.class, "GoogleTranslation: " + numberOfTranslationsRequested + " requested,  " + numberOfTranslations + " done in " + timeTracker.getSumOfTimeMs() + " ms ");
     }
 
     @Override
@@ -60,21 +66,25 @@ public class ProposalGoogleTranslate implements Proposal {
         if (numberOfTranslations >= limitNumberOfTranslations)
             return null;
 
+        AppTimeTracker timeTracker = AppTimeTracker.getTimeTracker("googleTranslation");
+
         try {
+            timeTracker.start();
             TranslateOption sourceLanguageOption = Translate.TranslateOption.sourceLanguage(referenceDictionary.getLanguage());
             TranslateOption targetLanguageOption = Translate.TranslateOption.targetLanguage(appDictionary.getLanguage());
 
-            long currentTime = System.currentTimeMillis();
             Translation translation = translate.translate(
                     (String) referenceDictionary.getDictionary().get(key),
                     sourceLanguageOption,
                     targetLanguageOption);
-            cumulTranslationTimeInMs += System.currentTimeMillis() - currentTime;
+            timeTracker.stop();
 
             numberOfTranslations++;
-            if (System.currentTimeMillis() - lastReportTime > 5000) {
-                lastReportTime = System.currentTimeMillis();
-                report.info(ProposalGoogleTranslate.class, "Google Translate:" + numberOfTranslations);
+            accumulateTimeSinceLastReportInMS += timeTracker.getLastExecutionTime();
+
+            if (accumulateTimeSinceLastReportInMS > 30000) {
+                report.info(ProposalGoogleTranslate.class, "       (GoogleTranslation partial result): " + numberOfTranslations + " done in " + timeTracker.getSumOfTimeMs() + " ms ");
+                accumulateTimeSinceLastReportInMS = 0;
             }
             return translation.getTranslatedText().replace("&#39;", "'");
         } catch (Exception e) {

@@ -32,9 +32,11 @@ public class AppPilot {
     String referenceLanguage;
     Set<String> languages = new HashSet<>();
     Set<String> expectedLanguages;
+    Set<AppTimeTracker> allTrackers = new HashSet<>();
 
     public AppPilot(WebApplication webApplication, String referenceLanguage) {
         this.webApplication = webApplication;
+
         this.referenceLanguage = referenceLanguage;
         for (File file : Objects.requireNonNull(new File(webApplication.translationFolder.getAbsolutePath()).listFiles())) {
             if (file.getName().endsWith(".json"))
@@ -65,14 +67,25 @@ public class AppPilot {
      * @param report        report the status
      */
     public void detection(SynchroParams synchroParams, ReportInt report) {
+        AppTimeTracker timeTrackerRead = AppTimeTracker.getTimeTracker("dictionaryRead");
+
 
         AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
-        if (!referenceDictionary.read(report))
+        timeTrackerRead.start();
+
+        if (!referenceDictionary.read(report)) {
+            timeTrackerRead.stop();
             return;
+        }
+        timeTrackerRead.stop();
 
         DictionaryDetection appDetection = new DictionaryDetection();
+        AppTimeTracker timeTrackerDetection = AppTimeTracker.getTimeTracker("detection");
 
+
+        timeTrackerDetection.start();
         appDetection.detection(expectedLanguages, webApplication, referenceDictionary, synchroParams, report);
+        timeTrackerDetection.stop();
 
     }
 
@@ -84,10 +97,16 @@ public class AppPilot {
      * @param report                 report object
      */
     public void completion(EncyclopediaUniversal encyclopediaUniversal, List<Proposal> listProposals, SynchroParams synchroParams, ReportInt report) {
+
         AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
+        AppTimeTracker timeTracker = AppTimeTracker.getTimeTracker("readDictionary");
+
+        timeTracker.start();
         referenceDictionary.read(report);
+        timeTracker.stop();
 
         DictionaryCompletion appCompletion = new DictionaryCompletion();
+
         appCompletion.completion(expectedLanguages, webApplication, referenceDictionary, encyclopediaUniversal, listProposals, synchroParams, report);
     }
 
@@ -99,6 +118,9 @@ public class AppPilot {
      * @param report                report object
      */
     public void completeEncyclopedia(EncyclopediaUniversal encyclopediaUniversal, SynchroParams synchroParams, ReportInt report) {
+
+        AppTimeTracker timeTracker = AppTimeTracker.getTimeTracker("completeEncyclopedia");
+        timeTracker.start();
         AppDictionary referenceDictionary = new AppDictionary(webApplication.referenceFolder, referenceLanguage);
         if (referenceDictionary.existFile() && referenceDictionary.read(report))
             encyclopediaUniversal.registerDictionary(referenceDictionary);
@@ -112,6 +134,9 @@ public class AppPilot {
                 encyclopediaUniversal.registerDictionary(dictionary);
             }
         }
+        timeTracker.stop();
+
     }
+
 
 }
