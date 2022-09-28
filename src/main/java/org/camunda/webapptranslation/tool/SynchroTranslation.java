@@ -8,6 +8,7 @@ package org.camunda.webapptranslation.tool;
 /* -------------------------------------------------------------------- */
 
 import org.camunda.webapptranslation.tool.app.AppPilot;
+import org.camunda.webapptranslation.tool.app.AppTimeTracker;
 import org.camunda.webapptranslation.tool.operation.*;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 import org.camunda.webapptranslation.tool.report.ReportLogger;
@@ -15,6 +16,7 @@ import org.camunda.webapptranslation.tool.report.ReportStdout;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SynchroTranslation {
 
@@ -83,10 +85,11 @@ public class SynchroTranslation {
             // Build the list of proposal objects
             List<Proposal> listProposals = new ArrayList<>();
             if (synchroParams.getCompletion() == SynchroParams.COMPLETION.TRANSLATION) {
-                List<Proposal> listAllProposal = new ArrayList();
+                List<Proposal> listAllProposal = new ArrayList<Proposal>();
                 listAllProposal.add(new ProposalSameKey());
                 listAllProposal.add(new ProposalSameTranslation());
                 if (synchroParams.getGoogleAPIKey() != null)
+
                     listAllProposal.add(new ProposalGoogleTranslate(synchroParams.getGoogleAPIKey(), synchroParams.getLimitNumberGoogleTranslation()));
 
                 listAllProposal.forEach(proposal -> {
@@ -104,6 +107,11 @@ public class SynchroTranslation {
             listProposals.forEach(proposal -> proposal.end(report));
         }
 
+        // report statistics
+        String timeTrackerInfo = AppTimeTracker.getAllTimeTracker().values().stream()
+                .map(AppTimeTracker::getInformations)
+                .collect(Collectors.joining(", "));
+        System.out.println("Time tracker: " + timeTrackerInfo);
         System.out.println("The end");
     }
 

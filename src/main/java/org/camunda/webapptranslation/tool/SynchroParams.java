@@ -83,6 +83,7 @@ public class SynchroParams {
                 }
                 i += 2;
             } else {
+
                 // Next args:
                 // REFERENCE_FOLDER TRANSLATION_DIRECTORY OPTIMIZE_DIRECTORY + referenceLanguage
                 if (parameterCommand == 0)
@@ -92,17 +93,20 @@ public class SynchroParams {
                 if (parameterCommand == 2)
                     optimizeFolder = getFile(args[i]);
                 if (parameterCommand == 3)
+
                     referenceLanguage = args[i];
                 parameterCommand++;
                 i++;
             }
         }
+
         if (referenceFolder == null)
             msgErrors.add("No REFERENCE_FOLDER provided");
         if (translationFolder == null)
             msgErrors.add("No TRANSLATION_FOLDER Folder provided");
         if (optimizeFolder == null)
             msgErrors.add("No OPTIMIZE_FOLDER Folder provided");
+
     }
 
     public DETECTION getDetection() {
@@ -206,6 +210,7 @@ public class SynchroParams {
         msgErrors.forEach(SynchroParams::print);
         print("");
     }
+
 
     /**
      * Get the File folder from the string
