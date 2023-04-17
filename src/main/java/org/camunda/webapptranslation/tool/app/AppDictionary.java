@@ -10,7 +10,7 @@ import org.camunda.webapptranslation.tool.report.ReportInt;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -51,7 +51,7 @@ public class AppDictionary {
     public AppDictionary(File folder, String language) {
         this.folder = folder;
         this.language = language;
-        this.dictionary = new HashMap<>();
+        this.dictionary = new LinkedHashMap<>();
     }
 
 
@@ -79,7 +79,7 @@ public class AppDictionary {
     /* -------------------------------------------------------------------- */
     public boolean read(ReportInt report) {
         AppDictionarySerialize serialize = new AppDictionarySerialize(this);
-        dictionary = new HashMap<>();
+        dictionary = new LinkedHashMap<>();
         boolean status = serialize.read(report);
         dictionaryIsModified = false;
         return status;
@@ -93,12 +93,18 @@ public class AppDictionary {
      */
     public boolean write(ReportInt report) {
         AppDictionarySerialize serialize = new AppDictionarySerialize(this);
+        if (referenceDictionary!=null)
+            serialize.setReferenceDictionary(referenceDictionary);
         boolean status = serialize.write(report);
         if (status)
             dictionaryIsModified = false;
         return status;
     }
 
+    AppDictionary referenceDictionary;
+    public void setReferenceDictionary(AppDictionary referenceDictionary) {
+        this.referenceDictionary = referenceDictionary;
+    }
     /**
      * isModified
      *

@@ -48,7 +48,7 @@ public class AppDictionarySerialize {
             if (jsonComplete.startsWith(UTF8_BOM))
                 jsonComplete = jsonComplete.substring(1);
             Gson gson = new Gson();
-            Map<String, Object> dictionaryJson = gson.fromJson(jsonComplete, Map.class);
+            Map<String, Object> dictionaryJson = gson.fromJson(jsonComplete, LinkedHashMap.class);
             // a empty dictionary return a null JSON
             if (dictionaryJson != null)
                 convertToFlatList(dictionaryJson, "");
@@ -133,7 +133,19 @@ public class AppDictionarySerialize {
      * @return a hierarchy of Map / Keys
      */
     private Map<String, Object> convertFromFlatList() {
+        // no reference dictionary? Then sort alphabetically
+        if (providedReferenceDictionary == null)
+            return concertFromFlatListOrdered();
+        else {
+            return concertFromFlatListReference();
+        }
+    }
+
+
+    private Map<String, Object> concertFromFlatListOrdered() {
         Map<String, Object> dicoObject = new TreeMap<>();
+
+
         for (Map.Entry<String, Object> entry : appDictionary.getDictionary().entrySet()) {
             StringTokenizer st = new StringTokenizer(entry.getKey(), ".");
             List<String> tokens = new ArrayList<>();
@@ -146,6 +158,30 @@ public class AppDictionarySerialize {
         return dicoObject;
     }
 
+    private Map<String, Object> concertFromFlatListReference() {
+        Map<String, Object> dicoObject = new LinkedHashMap<>();
+        // first, get all the value
+        Map<String, Object> allEntry = concertFromFlatListOrdered();
+        // Now, we have to fullfill the dictionnary from the reference order
+        for (String key : providedReferenceDictionary.keySet()) {
+            Object value = allEntry.get(key);
+            if (value != null)
+                dicoObject.put(key, value);
+        }
+        // now, all entry which are not in the reference (new keys)
+        for (String key : allEntry.keySet()) {
+            Object value = providedReferenceDictionary.get(key);
+            if (value==null)
+                dicoObject.put(key, allEntry.get(key));
+        }
+        return dicoObject;
+    }
+
+    Map<String,Object> providedReferenceDictionary = null;
+    public void setReferenceDictionary(AppDictionary referenceDictionary) {
+        this.providedReferenceDictionary = referenceDictionary.getDictionary();
+
+    }
     /**
      * Get the container according the list of Tokens. Each token is a key in the map
      *
