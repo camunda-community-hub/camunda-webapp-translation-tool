@@ -7,6 +7,7 @@ import org.camunda.webapptranslation.tool.app.AppPilot;
 import org.camunda.webapptranslation.tool.app.AppTimeTracker;
 import org.camunda.webapptranslation.tool.report.ReportInt;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -131,7 +132,19 @@ public class DictionaryCompletion extends Operation {
 
 
             // -----------Write it
-            if (appDictionary.isModified()) {
+            if (appDictionary.isModified() || synchroParams.isForce()) {
+
+                // is a reference dictionary exist?
+                AppDictionary appDictionaryReference = new AppDictionary(new File(webApplication.translationFolder+"/orig"), language);
+                if (appDictionaryReference.existFile())
+                {
+                    timeTrackerReadDictionary.start();
+                    boolean allIsOk = appDictionaryReference.read(report);
+                    timeTrackerReadDictionary.stop();
+                    appDictionary.setReferenceDictionary( appDictionaryReference);
+                }
+
+
                 AppTimeTracker timeTracker = AppTimeTracker.getTimeTracker("dictionaryWrite");
                 timeTracker.start();
                 boolean statusWrite = appDictionary.write(report);

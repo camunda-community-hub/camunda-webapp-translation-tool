@@ -25,6 +25,7 @@ public class SynchroParams {
     private String googleAPIKey;
     private int limitNumberGoogleTranslation = 100;
 
+    private boolean force=false;
     /**
      * Static to be use in lambda
      *
@@ -58,7 +59,7 @@ public class SynchroParams {
                 try {
                     completion = COMPLETION.valueOf(args[i + 1]);
                 } catch (Exception e) {
-                    print("-d <" + COMPLETION.NO + "|" + COMPLETION.KEYS + "|" + COMPLETION.TRANSLATION + "> Complete each dictionary. Default is " + COMPLETION.NO);
+                    print("-c <" + COMPLETION.NO + "|" + COMPLETION.KEYS + "|" + COMPLETION.TRANSLATION + "> Complete each dictionary. Default is " + COMPLETION.NO);
                 }
                 i += 2;
             } else if (("-g".equals(args[i]) || "--googleAPIKey".equals(args[i])) && i < args.length - 1) {
@@ -75,13 +76,16 @@ public class SynchroParams {
             } else if ("-u".equals(args[i]) || "--usage".equals(args[i])) {
                 usage = true;
                 i++;
-            } else if (("-r".equals(args[i]) || "--report".equals(args[i])) && i < args.length - 1) {
+                  } else if (("-r".equals(args[i]) || "--report".equals(args[i])) && i < args.length - 1) {
                 try {
                     report = REPORT.valueOf(args[i + 1]);
                 } catch (Exception e) {
                     print("-r <" + REPORT.STDOUT + "|" + REPORT.LOGGER + "> accepted");
                 }
                 i += 2;
+            } else if (("-f".equals(args[i]) || "--force".equals(args[i])) && i < args.length - 1) {
+                    force=true;
+                i += 1;
             } else {
 
                 // Next args:
@@ -167,9 +171,9 @@ public class SynchroParams {
      * print the current options detected
      */
     public void printOptions() {
-        print(" REFERENCE_FOLDER to study: " + getReferenceFolder().toString());
-        print(" TRANSLATION_FOLDER to study: " + getTranslationFolder().toString());
-        print(" OPTIMIZE_FOLDER to study: " + getOptimizeFolder().toString());
+        print(" C7 REFERENCE_FOLDER to study:                  " + getReferenceFolder().toString());
+        print(" C7 TRANSLATION_FOLDER to save translation:     " + getTranslationFolder().toString());
+        print(" OPTIMIZE_FOLDER to study and save translation: " + getOptimizeFolder().toString());
         print(" Reference language: " + getReferenceLanguage());
         print(" Detection: " + getDetection());
         print(" Completion: " + getCompletion());
@@ -184,6 +188,9 @@ public class SynchroParams {
 
     }
 
+    public boolean isForce() {
+        return force;
+    }
     /**
      * print the usage
      */
@@ -202,6 +209,7 @@ public class SynchroParams {
         print(" -l|--language <language>: if set, only this language is analysed / completed");
 
         print(" -r|--report  <" + REPORT.STDOUT + "|" + REPORT.LOGGER + ">");
+        print(" -f|--force dictionary is rewrited");
         print(" TranslationFolder is the root folder which contains all translations (cloned from https://github.com/camunda/camunda-webapp-translations)");
     }
 
