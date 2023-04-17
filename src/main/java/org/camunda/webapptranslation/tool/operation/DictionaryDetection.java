@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 /* -------------------------------------------------------------------- */
 /*                                                                      */
-/* Detection                              */
+/* Detection                                                            */
 /*                                                                      */
 /* The operation detect any issues in the dictionary, and do not change them*/
 /*                                                                      */
